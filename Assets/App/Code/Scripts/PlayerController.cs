@@ -32,6 +32,9 @@ namespace TinyAdventure
         [SerializeField] private float gravityMultiplier = 3f;
 
 
+        // State Machine
+        private StateMachine _stateMachine;
+
         // Private Values
         private Vector3 _movement = Vector3.zero;
         private Transform _mainCamera;
@@ -69,8 +72,28 @@ namespace TinyAdventure
             _jumpCooldownTimer = new CountdownTimer(jumpCoolDown);
             _timers = new List<Timer>(2) { _jumpTimer, _jumpCooldownTimer };
 
+            _jumpTimer.OnTimerStart += () => _jumpVelocity = jumpForce;
             _jumpTimer.OnTimerStop += () => _jumpCooldownTimer.Start();
+
+            // State Machine
+            _stateMachine = new StateMachine();
+
+            // Declare States
+            var locomotionState = new LocomotionState(this, animator);
+            var jumpState = new JumpState(this, animator);
+
+            // Define Transitions
+            At(locomotionState, jumpState, new FuncPredicate(() => _jumpTimer.IsRunning));
+            At(jumpState, locomotionState, new FuncPredicate(() => groundChecker.IsGrounded && !_jumpTimer.IsRunning));
+            
+            _stateMachine.SetState(locomotionState);
         }
+
+        private void At(IState from, IState to, IPredicate condition) =>
+            _stateMachine.AddTransition(from, to, condition);
+
+        private void Any(IState to, IPredicate condition) => _stateMachine.AddAnyTransition(to, condition);
+
 
         private void Start()
         {
@@ -80,6 +103,11 @@ namespace TinyAdventure
         private void OnEnable()
         {
             input.Jump += OnJump;
+        }
+
+        private void OnDisable()
+        {
+            input.Jump  -= OnJump;
         }
 
         private void OnJump(bool performed)
@@ -99,6 +127,8 @@ namespace TinyAdventure
         {
             _movement = new Vector3(input.Direction.x, 0, input.Direction.y);
 
+            _stateMachine.Update();
+            
             // HandleMovement();
             HandleTimers();
             UpdateAnimator();
@@ -106,11 +136,10 @@ namespace TinyAdventure
 
         private void FixedUpdate()
         {
-            HandleJump();
-            HandleMovement();
+            _stateMachine.FixedUpdate();
         }
 
-        private void HandleJump()
+        public void HandleJump()
         {
             if (!_jumpTimer.IsRunning && groundChecker.IsGrounded)
             {
@@ -119,19 +148,7 @@ namespace TinyAdventure
                 return;
             }
 
-            if (_jumpTimer.IsRunning)
-            {
-                var launchPoint = .9f;
-                if (_jumpTimer.Progress > launchPoint)
-                {
-                    _jumpVelocity = Mathf.Sqrt(2 * jumpMaxHeight * Mathf.Abs(Physics.gravity.y));
-                }
-                else
-                {
-                    _jumpVelocity += (1 - _jumpTimer.Progress) * jumpForce * Time.fixedDeltaTime;
-                }
-            }
-            else
+            if (!_jumpTimer.IsRunning)
             {
                 _jumpVelocity += Physics.gravity.y * gravityMultiplier * Time.fixedDeltaTime;
             }
@@ -152,7 +169,7 @@ namespace TinyAdventure
             animator.SetFloat(Speed, _currentSpeed);
         }
 
-        private void HandleMovement()
+        public void HandleMovement()
         {
             // var movementDirection = new Vector3(input.Direction.x, 0, input.Direction.y);
 
@@ -174,8 +191,6 @@ namespace TinyAdventure
 
         private void HandleHorizontalMovement(Vector3 adjustedDirection)
         {
-            // var adjustedMovement = adjustedDirection * (moveSpeed * Time.deltaTime);
-            // controller.Move(adjustedMovement);
             var velocity = adjustedDirection * (moveSpeed * Time.fixedDeltaTime);
             rb.velocity = new Vector3(velocity.x, rb.velocity.y, velocity.z);
         }

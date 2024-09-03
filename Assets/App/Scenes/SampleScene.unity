@@ -1328,9 +1328,9 @@ MonoBehaviour:
   moveSpeed: 300
   rotationSpeed: 15
   smoothTime: 0.2
-  jumpForce: 15
+  jumpForce: 10
   jumpMaxHeight: 0.5
-  jumpDuration: 0.5
+  jumpDuration: 0.1
   jumpCoolDown: 0
   gravityMultiplier: 3
 --- !u!95 &1328952320 stripped
