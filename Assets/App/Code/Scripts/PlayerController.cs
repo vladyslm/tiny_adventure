@@ -31,6 +31,12 @@ namespace TinyAdventure
         [SerializeField] private float jumpCoolDown = 0;
         [SerializeField] private float gravityMultiplier = 3f;
 
+        [Header("Dash Settings")] [SerializeField]
+        private float dashForce = 2f;
+
+        [SerializeField] private float dashDuration = 0.2f;
+        [SerializeField] private float dashCoolDown = 0f;
+
 
         // State Machine
         private StateMachine _stateMachine;
@@ -42,9 +48,14 @@ namespace TinyAdventure
         private float _velocity;
         private float _jumpVelocity;
 
+        private float _dashVelocity = 1f;
+
+
         List<Timer> _timers;
         private CountdownTimer _jumpTimer;
         private CountdownTimer _jumpCooldownTimer;
+        private CountdownTimer _dashTimer;
+        private CountdownTimer _dashCooldownTimer;
 
 
         // Constant Values
@@ -70,10 +81,21 @@ namespace TinyAdventure
             // Setup Timers
             _jumpTimer = new CountdownTimer(jumpDuration);
             _jumpCooldownTimer = new CountdownTimer(jumpCoolDown);
-            _timers = new List<Timer>(2) { _jumpTimer, _jumpCooldownTimer };
+            _dashTimer = new CountdownTimer(dashDuration);
+            _dashCooldownTimer = new CountdownTimer(dashCoolDown);
+
+            _timers = new List<Timer>(4) { _jumpTimer, _jumpCooldownTimer, _dashTimer, _dashCooldownTimer };
 
             _jumpTimer.OnTimerStart += () => _jumpVelocity = jumpForce;
             _jumpTimer.OnTimerStop += () => _jumpCooldownTimer.Start();
+
+            _dashTimer.OnTimerStart += () => _dashVelocity = dashForce;
+            _dashTimer.OnTimerStop += () =>
+            {
+                _dashVelocity = 1f;
+                _dashCooldownTimer.Start();
+            };
+
 
             // State Machine
             _stateMachine = new StateMachine();
@@ -81,11 +103,14 @@ namespace TinyAdventure
             // Declare States
             var locomotionState = new LocomotionState(this, animator);
             var jumpState = new JumpState(this, animator);
+            var dashState = new DashState(this, animator);
 
             // Define Transitions
             At(locomotionState, jumpState, new FuncPredicate(() => _jumpTimer.IsRunning));
-            At(jumpState, locomotionState, new FuncPredicate(() => groundChecker.IsGrounded && !_jumpTimer.IsRunning));
+            At(locomotionState, dashState, new FuncPredicate(() => _dashTimer.IsRunning));
             
+            Any(locomotionState, new FuncPredicate(() => groundChecker.IsGrounded && !_jumpTimer.IsRunning && !_dashTimer.IsRunning));
+
             _stateMachine.SetState(locomotionState);
         }
 
@@ -103,11 +128,25 @@ namespace TinyAdventure
         private void OnEnable()
         {
             input.Jump += OnJump;
+            input.Dash += OnDash;
         }
 
         private void OnDisable()
         {
-            input.Jump  -= OnJump;
+            input.Jump -= OnJump;
+            input.Dash -= OnDash;
+        }
+
+        private void OnDash(bool performed)
+        {
+            if (performed && !_dashCooldownTimer.IsRunning && groundChecker.IsGrounded)
+            {
+                _dashTimer.Start();
+            }
+            else if (!performed && _dashTimer.IsRunning)
+            {
+                _dashTimer.Stop();
+            }
         }
 
         private void OnJump(bool performed)
@@ -128,7 +167,7 @@ namespace TinyAdventure
             _movement = new Vector3(input.Direction.x, 0, input.Direction.y);
 
             _stateMachine.Update();
-            
+
             // HandleMovement();
             HandleTimers();
             UpdateAnimator();
@@ -191,7 +230,7 @@ namespace TinyAdventure
 
         private void HandleHorizontalMovement(Vector3 adjustedDirection)
         {
-            var velocity = adjustedDirection * (moveSpeed * Time.fixedDeltaTime);
+            var velocity = adjustedDirection * (moveSpeed * _dashVelocity * Time.fixedDeltaTime);
             rb.velocity = new Vector3(velocity.x, rb.velocity.y, velocity.z);
         }
 

@@ -14,6 +14,8 @@ namespace TinyAdventure
         public event UnityAction<Vector2> Move = delegate { };
         public event UnityAction<Vector2> Look = delegate { };
         public event UnityAction<bool> Jump = delegate { };
+        
+        public event UnityAction<bool> Dash = delegate { }; 
 
         private PlayerInputAction _inputAction;
 
@@ -27,8 +29,7 @@ namespace TinyAdventure
                 _inputAction = new PlayerInputAction();
                 _inputAction.Player.SetCallbacks(this);
             }
-
-            // _inputAction.Enable();
+            
         }
 
         public void EnablePlayerActions()
@@ -61,6 +62,19 @@ namespace TinyAdventure
                     break;
                 case InputActionPhase.Canceled:
                     Jump.Invoke(false);
+                    break;
+            }
+        }
+
+        public void OnDash(InputAction.CallbackContext context)
+        {
+            switch (context.phase)
+            {
+                case InputActionPhase.Started:
+                    Dash.Invoke(true);
+                    break;
+                case InputActionPhase.Canceled:
+                    Dash.Invoke(false);
                     break;
             }
         }
