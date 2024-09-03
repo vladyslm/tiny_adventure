@@ -34,7 +34,7 @@ namespace TinyAdventure
         {
             if (!IsRunning) return;
             IsRunning = false;
-            OnTimerStart?.Invoke();
+            OnTimerStop?.Invoke();
         }
 
         public void Resume() => IsRunning = true;
