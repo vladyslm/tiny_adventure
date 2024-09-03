@@ -13,6 +13,7 @@ namespace TinyAdventure
     {
         public event UnityAction<Vector2> Move = delegate { };
         public event UnityAction<Vector2> Look = delegate { };
+        public event UnityAction<bool> Jump = delegate { };
 
         private PlayerInputAction _inputAction;
 
@@ -49,6 +50,19 @@ namespace TinyAdventure
         public void OnFire(InputAction.CallbackContext context)
         {
             // to implement
+        }
+
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            switch (context.phase)
+            {
+                case InputActionPhase.Started:
+                    Jump.Invoke(true);
+                    break;
+                case InputActionPhase.Canceled:
+                    Jump.Invoke(false);
+                    break;
+            }
         }
     }
 }
