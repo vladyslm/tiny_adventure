@@ -9,8 +9,8 @@ namespace TinyAdventure
     public class PlayerController : MonoBehaviour
     {
         // Actions
-        public event UnityAction<bool> OnPlayerRun = delegate { }; 
-        
+        public event UnityAction<bool> OnPlayerRun = delegate { };
+
         [Header("References")] [SerializeField]
         private InputReader input;
 
@@ -41,6 +41,11 @@ namespace TinyAdventure
         [SerializeField] private float dashDuration = 0.2f;
         [SerializeField] private float dashCoolDown = 0f;
 
+        [Header("Attack Settings")] [SerializeField]
+        private float attackDuration = 0.1f;
+
+        [SerializeField] private float attackCooldown = 0;
+
 
         // State Machine
         private StateMachine _stateMachine;
@@ -61,7 +66,12 @@ namespace TinyAdventure
         private CountdownTimer _dashTimer;
         private CountdownTimer _dashCooldownTimer;
 
+        private CountdownTimer _attackTimer;
+        private CountdownTimer _attackCooldownTimer;
+
         private bool _isOnRunWasSent;
+        
+        public float CurrentSpeed => _currentSpeed;
 
 
         // Constant Values
@@ -89,8 +99,11 @@ namespace TinyAdventure
             _jumpCooldownTimer = new CountdownTimer(jumpCoolDown);
             _dashTimer = new CountdownTimer(dashDuration);
             _dashCooldownTimer = new CountdownTimer(dashCoolDown);
+            _attackTimer = new CountdownTimer(attackDuration);
+            _attackCooldownTimer = new CountdownTimer(attackDuration);
 
-            _timers = new List<Timer>(4) { _jumpTimer, _jumpCooldownTimer, _dashTimer, _dashCooldownTimer };
+            _timers = new List<Timer>(6)
+                { _jumpTimer, _jumpCooldownTimer, _dashTimer, _dashCooldownTimer, _attackTimer, _attackCooldownTimer };
 
             _jumpTimer.OnTimerStart += () => _jumpVelocity = jumpForce;
             _jumpTimer.OnTimerStop += () => _jumpCooldownTimer.Start();
@@ -102,20 +115,39 @@ namespace TinyAdventure
                 _dashCooldownTimer.Start();
             };
 
+            // _attackTimer.OnTimerStart += () => { Debug.Log("Starting attack"); };
+
+            // Attatk timers
+            _attackTimer.OnTimerStop += () =>
+            {
+                _attackCooldownTimer.Start();
+                // Debug.Log("Attack ended");
+            };
+
 
             // State Machine
             _stateMachine = new StateMachine();
 
             // Declare States
             var locomotionState = new LocomotionState(this, animator);
+            var attackState = new AttackState(this, animator);
             var jumpState = new JumpState(this, animator);
             var dashState = new DashState(this, animator);
+            
 
             // Define Transitions
             At(locomotionState, jumpState, new FuncPredicate(() => _jumpTimer.IsRunning));
             At(locomotionState, dashState, new FuncPredicate(() => _dashTimer.IsRunning));
             
-            Any(locomotionState, new FuncPredicate(() => groundChecker.IsGrounded && !_jumpTimer.IsRunning && !_dashTimer.IsRunning));
+            Any(attackState, new FuncPredicate(() => _attackTimer.IsRunning && groundChecker.IsGrounded));
+            // At(locomotionState, attackState, new FuncPredicate(() => _attackTimer.IsRunning));
+            // At(locomotionState, attackState, new FuncPredicate(() => _jumpTimer.IsRunning));
+            
+            // At(attackState, locomotionState, new FuncPredicate(() => !_attackTimer.IsRunning && groundChecker.IsGrounded));
+            // At(attackState, jumpState, new FuncPredicate(() => !_attackTimer.IsRunning && !groundChecker.IsGrounded));
+
+            Any(locomotionState,
+                new FuncPredicate(() => groundChecker.IsGrounded && !_jumpTimer.IsRunning && !_dashTimer.IsRunning && !_attackTimer.IsRunning));
 
             _stateMachine.SetState(locomotionState);
         }
@@ -133,14 +165,22 @@ namespace TinyAdventure
 
         private void OnEnable()
         {
+            input.Attack += OnAttack;
             input.Jump += OnJump;
             input.Dash += OnDash;
         }
 
         private void OnDisable()
         {
+            input.Attack -= OnAttack;
             input.Jump -= OnJump;
             input.Dash -= OnDash;
+        }
+
+        private void OnAttack()
+        {
+           if(!_attackTimer.IsRunning && !_attackCooldownTimer.IsRunning)
+               _attackTimer.Start();
         }
 
         private void OnDash(bool performed)
@@ -256,6 +296,7 @@ namespace TinyAdventure
                 _currentSpeed = 0;
                 return;
             }
+
             _currentSpeed = Mathf.SmoothDamp(_currentSpeed, value, ref _velocity, smoothTime);
         }
 

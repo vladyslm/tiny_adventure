@@ -13,6 +13,7 @@ namespace TinyAdventure
     {
         public event UnityAction<Vector2> Move = delegate { };
         public event UnityAction<Vector2> Look = delegate { };
+        public event UnityAction Attack = delegate { };
         public event UnityAction<bool> Jump = delegate { };
         
         public event UnityAction<bool> Dash = delegate { }; 
@@ -50,7 +51,12 @@ namespace TinyAdventure
 
         public void OnFire(InputAction.CallbackContext context)
         {
-            // to implement
+            switch (context.phase)
+            {
+                case InputActionPhase.Started:
+                    Attack.Invoke();
+                    break;
+            }
         }
 
         public void OnJump(InputAction.CallbackContext context)
