@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace TinyAdventure
 {
     public class PlayerController : MonoBehaviour
     {
+        // Actions
+        public event UnityAction<bool> OnPlayerRun = delegate { }; 
+        
         [Header("References")] [SerializeField]
         private InputReader input;
 
@@ -56,6 +60,8 @@ namespace TinyAdventure
         private CountdownTimer _jumpCooldownTimer;
         private CountdownTimer _dashTimer;
         private CountdownTimer _dashCooldownTimer;
+
+        private bool _isOnRunWasSent;
 
 
         // Constant Values
@@ -171,11 +177,13 @@ namespace TinyAdventure
             // HandleMovement();
             HandleTimers();
             UpdateAnimator();
+            // HandleRunAction();
         }
 
         private void FixedUpdate()
         {
             _stateMachine.FixedUpdate();
+            HandleRunAction();
         }
 
         public void HandleJump()
@@ -243,7 +251,28 @@ namespace TinyAdventure
 
         private void SmoothSpeed(float value)
         {
+            if (value == 0)
+            {
+                _currentSpeed = 0;
+                return;
+            }
             _currentSpeed = Mathf.SmoothDamp(_currentSpeed, value, ref _velocity, smoothTime);
+        }
+
+        private void HandleRunAction()
+        {
+            if (_currentSpeed > 0 && groundChecker.IsGrounded)
+            {
+                if (_isOnRunWasSent) return;
+                OnPlayerRun?.Invoke(true);
+                _isOnRunWasSent = true;
+            }
+            else
+            {
+                if (!_isOnRunWasSent) return;
+                OnPlayerRun?.Invoke(false);
+                _isOnRunWasSent = false;
+            }
         }
     }
 }
