@@ -16,7 +16,7 @@ namespace TinyAdventure
 
         public override void FixedUpdate()
         {
-            Player.HandleMovement();
+            Player.MovementController.HandleMovement();
         }
     }
 }

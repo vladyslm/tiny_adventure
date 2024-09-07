@@ -1377,19 +1377,9 @@ MonoBehaviour:
   freeLookCamera: {fileID: 214536084}
   animator: {fileID: 1328952320}
   groundChecker: {fileID: 1328952324}
-  moveSpeed: 300
-  rotationSpeed: 15
-  smoothTime: 0.2
-  jumpForce: 10
-  jumpMaxHeight: 0.5
-  jumpDuration: 0.1
-  jumpCoolDown: 0
-  gravityMultiplier: 3
-  dashForce: 10
-  dashDuration: 0.1
-  dashCoolDown: 2
-  attackDuration: 0.2
-  attackCooldown: 0
+  stats: {fileID: 11400000, guid: 02b746bb2b881f14e96341e5f648d87d, type: 2}
+  _movement: {x: 0, y: 0, z: 0}
+  _mainCamera: {fileID: 0}
 --- !u!95 &1328952320 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 9036980633323257398, guid: f30a55216c391c04d8f5ce1ac8362ff9,

@@ -14,47 +14,53 @@ namespace TinyAdventure
         [Header("References")] [SerializeField]
         private InputReader input;
 
-        [SerializeField] private Rigidbody rb;
+        [SerializeField] public Rigidbody rb;
 
         // [SerializeField] private CharacterController controller;
-        [SerializeField] private CinemachineFreeLook freeLookCamera;
+        [SerializeField] public CinemachineFreeLook freeLookCamera;
         [SerializeField] private Animator animator;
         [SerializeField] private GroundChecker groundChecker;
+        [SerializeField] private ControllerStats stats;
+        
+        public ControllerStats Stats => stats;
 
-        [Header("Movement Settings")] [SerializeField]
-        private float moveSpeed = 6f;
+        // [Header("Movement Settings")] [SerializeField]
+        // private float moveSpeed = 6f;
+        //
+        // [SerializeField] private float rotationSpeed = 15f;
+        // [SerializeField] private float smoothTime = .2f;
+        //
+        // [Header("Jump Setting")] [SerializeField]
+        // private float jumpForce = 15f;
+        //
+        // [SerializeField] private float jumpMaxHeight = 2f;
+        // [SerializeField] private float jumpDuration = 0.5f;
+        // [SerializeField] private float jumpCoolDown = 0;
+        // [SerializeField] private float gravityMultiplier = 3f;
+        //
+        // [Header("Dash Settings")] [SerializeField]
+        // private float dashForce = 2f;
+        //
+        // [SerializeField] private float dashDuration = 0.2f;
+        // [SerializeField] private float dashCoolDown = 0f;
+        //
+        // [Header("Attack Settings")] [SerializeField]
+        // private float attackDuration = 0.1f;
+        //
+        // [SerializeField] private float attackCooldown = 0;
 
-        [SerializeField] private float rotationSpeed = 15f;
-        [SerializeField] private float smoothTime = .2f;
 
-        [Header("Jump Setting")] [SerializeField]
-        private float jumpForce = 15f;
-
-        [SerializeField] private float jumpMaxHeight = 2f;
-        [SerializeField] private float jumpDuration = 0.5f;
-        [SerializeField] private float jumpCoolDown = 0;
-        [SerializeField] private float gravityMultiplier = 3f;
-
-        [Header("Dash Settings")] [SerializeField]
-        private float dashForce = 2f;
-
-        [SerializeField] private float dashDuration = 0.2f;
-        [SerializeField] private float dashCoolDown = 0f;
-
-        [Header("Attack Settings")] [SerializeField]
-        private float attackDuration = 0.1f;
-
-        [SerializeField] private float attackCooldown = 0;
-
+        // Controllers
+        public IMovementController MovementController;
 
         // State Machine
         private StateMachine _stateMachine;
 
         // Private Values
-        private Vector3 _movement = Vector3.zero;
-        private Transform _mainCamera;
+        public Vector3 _movement = Vector3.zero;
+        public Transform _mainCamera;
         private float _currentSpeed;
-        private float _velocity;
+        // public float _velocity;
         private float _jumpVelocity;
 
         private float _dashVelocity = 1f;
@@ -70,8 +76,9 @@ namespace TinyAdventure
         private CountdownTimer _attackCooldownTimer;
 
         private bool _isOnRunWasSent;
-        
-        public float CurrentSpeed => _currentSpeed;
+
+        public float CurrentSpeed {get => _currentSpeed; set => _currentSpeed = value; }
+        public Vector3 MovementInput => _movement;
 
 
         // Constant Values
@@ -94,21 +101,28 @@ namespace TinyAdventure
 
             rb.freezeRotation = true;
 
+
+            // Controllers
+            // MovementController = new MovementController(rb,  transform,  freeLookCamera.transform, ref _movement, ref smoothTime,
+                // ref moveSpeed, ref rotationSpeed);
+                MovementController = new MovementController(this);                
+
+
             // Setup Timers
-            _jumpTimer = new CountdownTimer(jumpDuration);
-            _jumpCooldownTimer = new CountdownTimer(jumpCoolDown);
-            _dashTimer = new CountdownTimer(dashDuration);
-            _dashCooldownTimer = new CountdownTimer(dashCoolDown);
-            _attackTimer = new CountdownTimer(attackDuration);
-            _attackCooldownTimer = new CountdownTimer(attackDuration);
+            _jumpTimer = new CountdownTimer(stats.jumpDuration);
+            _jumpCooldownTimer = new CountdownTimer(stats.jumpCoolDown);
+            _dashTimer = new CountdownTimer(stats.dashDuration);
+            _dashCooldownTimer = new CountdownTimer(stats.dashCoolDown);
+            _attackTimer = new CountdownTimer(stats.attackDuration);
+            _attackCooldownTimer = new CountdownTimer(stats.attackDuration);
 
             _timers = new List<Timer>(6)
                 { _jumpTimer, _jumpCooldownTimer, _dashTimer, _dashCooldownTimer, _attackTimer, _attackCooldownTimer };
 
-            _jumpTimer.OnTimerStart += () => _jumpVelocity = jumpForce;
+            _jumpTimer.OnTimerStart += () => _jumpVelocity = stats.jumpForce;
             _jumpTimer.OnTimerStop += () => _jumpCooldownTimer.Start();
 
-            _dashTimer.OnTimerStart += () => _dashVelocity = dashForce;
+            _dashTimer.OnTimerStart += () => _dashVelocity = stats.dashForce;
             _dashTimer.OnTimerStop += () =>
             {
                 _dashVelocity = 1f;
@@ -133,21 +147,18 @@ namespace TinyAdventure
             var attackState = new AttackState(this, animator);
             var jumpState = new JumpState(this, animator);
             var dashState = new DashState(this, animator);
-            
+
 
             // Define Transitions
             At(locomotionState, jumpState, new FuncPredicate(() => _jumpTimer.IsRunning));
             At(locomotionState, dashState, new FuncPredicate(() => _dashTimer.IsRunning));
-            
+
             Any(attackState, new FuncPredicate(() => _attackTimer.IsRunning && groundChecker.IsGrounded));
-            // At(locomotionState, attackState, new FuncPredicate(() => _attackTimer.IsRunning));
-            // At(locomotionState, attackState, new FuncPredicate(() => _jumpTimer.IsRunning));
-            
-            // At(attackState, locomotionState, new FuncPredicate(() => !_attackTimer.IsRunning && groundChecker.IsGrounded));
-            // At(attackState, jumpState, new FuncPredicate(() => !_attackTimer.IsRunning && !groundChecker.IsGrounded));
 
             Any(locomotionState,
-                new FuncPredicate(() => groundChecker.IsGrounded && !_jumpTimer.IsRunning && !_dashTimer.IsRunning && !_attackTimer.IsRunning));
+                new FuncPredicate(() =>
+                    groundChecker.IsGrounded && !_jumpTimer.IsRunning && !_dashTimer.IsRunning &&
+                    !_attackTimer.IsRunning));
 
             _stateMachine.SetState(locomotionState);
         }
@@ -179,8 +190,8 @@ namespace TinyAdventure
 
         private void OnAttack()
         {
-           if(!_attackTimer.IsRunning && !_attackCooldownTimer.IsRunning)
-               _attackTimer.Start();
+            if (!_attackTimer.IsRunning && !_attackCooldownTimer.IsRunning)
+                _attackTimer.Start();
         }
 
         private void OnDash(bool performed)
@@ -211,13 +222,11 @@ namespace TinyAdventure
         private void Update()
         {
             _movement = new Vector3(input.Direction.x, 0, input.Direction.y);
-
+            
             _stateMachine.Update();
-
-            // HandleMovement();
+            
             HandleTimers();
             UpdateAnimator();
-            // HandleRunAction();
         }
 
         private void FixedUpdate()
@@ -237,7 +246,7 @@ namespace TinyAdventure
 
             if (!_jumpTimer.IsRunning)
             {
-                _jumpVelocity += Physics.gravity.y * gravityMultiplier * Time.fixedDeltaTime;
+                _jumpVelocity += Physics.gravity.y * stats.gravityMultiplier * Time.fixedDeltaTime;
             }
 
             rb.velocity = new Vector3(rb.velocity.x, _jumpVelocity, rb.velocity.z);
@@ -256,49 +265,49 @@ namespace TinyAdventure
             animator.SetFloat(Speed, _currentSpeed);
         }
 
-        public void HandleMovement()
-        {
-            // var movementDirection = new Vector3(input.Direction.x, 0, input.Direction.y);
+        // public void HandleMovement()
+        // {
+        //     // var movementDirection = new Vector3(input.Direction.x, 0, input.Direction.y);
+        //
+        //     var adjustedDirection = Quaternion.AngleAxis(_mainCamera.eulerAngles.y, Vector3.up) * _movement;
+        //     if (adjustedDirection.magnitude > ZeroF)
+        //     {
+        //         HandleRotation(adjustedDirection);
+        //         HandleHorizontalMovement(adjustedDirection);
+        //
+        //         SmoothSpeed(adjustedDirection.magnitude);
+        //     }
+        //     else
+        //     {
+        //         SmoothSpeed(ZeroF);
+        //
+        //         rb.velocity = new Vector3(ZeroF, rb.velocity.y, ZeroF);
+        //     }
+        // }
 
-            var adjustedDirection = Quaternion.AngleAxis(_mainCamera.eulerAngles.y, Vector3.up) * _movement;
-            if (adjustedDirection.magnitude > ZeroF)
-            {
-                HandleRotation(adjustedDirection);
-                HandleHorizontalMovement(adjustedDirection);
-
-                SmoothSpeed(adjustedDirection.magnitude);
-            }
-            else
-            {
-                SmoothSpeed(ZeroF);
-
-                rb.velocity = new Vector3(ZeroF, rb.velocity.y, ZeroF);
-            }
-        }
-
-        private void HandleHorizontalMovement(Vector3 adjustedDirection)
-        {
-            var velocity = adjustedDirection * (moveSpeed * _dashVelocity * Time.fixedDeltaTime);
-            rb.velocity = new Vector3(velocity.x, rb.velocity.y, velocity.z);
-        }
-
-        private void HandleRotation(Vector3 adjustedDirection)
-        {
-            var targetRotation = Quaternion.LookRotation(adjustedDirection);
-            transform.rotation =
-                Quaternion.RotateTowards(targetRotation, transform.rotation, rotationSpeed * Time.deltaTime);
-        }
-
-        private void SmoothSpeed(float value)
-        {
-            if (value == 0)
-            {
-                _currentSpeed = 0;
-                return;
-            }
-
-            _currentSpeed = Mathf.SmoothDamp(_currentSpeed, value, ref _velocity, smoothTime);
-        }
+        // private void HandleHorizontalMovement(Vector3 adjustedDirection)
+        // {
+        //     var velocity = adjustedDirection * (moveSpeed * _dashVelocity * Time.fixedDeltaTime);
+        //     rb.velocity = new Vector3(velocity.x, rb.velocity.y, velocity.z);
+        // }
+        //
+        // private void HandleRotation(Vector3 adjustedDirection)
+        // {
+        //     var targetRotation = Quaternion.LookRotation(adjustedDirection);
+        //     transform.rotation =
+        //         Quaternion.RotateTowards(targetRotation, transform.rotation, rotationSpeed * Time.deltaTime);
+        // }
+        //
+        // private void SmoothSpeed(float value)
+        // {
+        //     if (value == 0)
+        //     {
+        //         _currentSpeed = 0;
+        //         return;
+        //     }
+        //
+        //     _currentSpeed = Mathf.SmoothDamp(_currentSpeed, value, ref _velocity, smoothTime);
+        // }
 
         private void HandleRunAction()
         {
