@@ -19,9 +19,9 @@ namespace TinyAdventure
         // [SerializeField] private CharacterController controller;
         [SerializeField] public CinemachineFreeLook freeLookCamera;
         [SerializeField] private Animator animator;
-        [SerializeField] private GroundChecker groundChecker;
+        [SerializeField] public GroundChecker groundChecker;
         [SerializeField] private ControllerStats stats;
-        
+
         public ControllerStats Stats => stats;
 
         // [Header("Movement Settings")] [SerializeField]
@@ -52,6 +52,7 @@ namespace TinyAdventure
 
         // Controllers
         public IMovementController MovementController;
+        public IJumpController JumpController;
 
         // State Machine
         private StateMachine _stateMachine;
@@ -59,7 +60,9 @@ namespace TinyAdventure
         // Private Values
         public Vector3 _movement = Vector3.zero;
         public Transform _mainCamera;
+
         private float _currentSpeed;
+
         // public float _velocity;
         private float _jumpVelocity;
 
@@ -67,8 +70,8 @@ namespace TinyAdventure
 
 
         List<Timer> _timers;
-        private CountdownTimer _jumpTimer;
-        private CountdownTimer _jumpCooldownTimer;
+        public CountdownTimer _jumpTimer;
+        public CountdownTimer _jumpCooldownTimer;
         private CountdownTimer _dashTimer;
         private CountdownTimer _dashCooldownTimer;
 
@@ -77,7 +80,12 @@ namespace TinyAdventure
 
         private bool _isOnRunWasSent;
 
-        public float CurrentSpeed {get => _currentSpeed; set => _currentSpeed = value; }
+        public float CurrentSpeed
+        {
+            get => _currentSpeed;
+            set => _currentSpeed = value;
+        }
+
         public Vector3 MovementInput => _movement;
 
 
@@ -104,8 +112,9 @@ namespace TinyAdventure
 
             // Controllers
             // MovementController = new MovementController(rb,  transform,  freeLookCamera.transform, ref _movement, ref smoothTime,
-                // ref moveSpeed, ref rotationSpeed);
-                MovementController = new MovementController(this);                
+            // ref moveSpeed, ref rotationSpeed);
+            MovementController = new MovementController(this);
+            JumpController = new JumpController(this);
 
 
             // Setup Timers
@@ -119,7 +128,8 @@ namespace TinyAdventure
             _timers = new List<Timer>(6)
                 { _jumpTimer, _jumpCooldownTimer, _dashTimer, _dashCooldownTimer, _attackTimer, _attackCooldownTimer };
 
-            _jumpTimer.OnTimerStart += () => _jumpVelocity = stats.jumpForce;
+            // _jumpTimer.OnTimerStart += () => _jumpVelocity = stats.jumpForce;
+            _jumpTimer.OnTimerStart += () => JumpController.OnJumpTimerStart();
             _jumpTimer.OnTimerStop += () => _jumpCooldownTimer.Start();
 
             _dashTimer.OnTimerStart += () => _dashVelocity = stats.dashForce;
@@ -180,7 +190,7 @@ namespace TinyAdventure
             input.Jump += OnJump;
             input.Dash += OnDash;
         }
-
+        
         private void OnDisable()
         {
             input.Attack -= OnAttack;
@@ -222,9 +232,9 @@ namespace TinyAdventure
         private void Update()
         {
             _movement = new Vector3(input.Direction.x, 0, input.Direction.y);
-            
+
             _stateMachine.Update();
-            
+
             HandleTimers();
             UpdateAnimator();
         }
@@ -235,22 +245,22 @@ namespace TinyAdventure
             HandleRunAction();
         }
 
-        public void HandleJump()
-        {
-            if (!_jumpTimer.IsRunning && groundChecker.IsGrounded)
-            {
-                _jumpVelocity = ZeroF;
-                _jumpTimer.Stop();
-                return;
-            }
-
-            if (!_jumpTimer.IsRunning)
-            {
-                _jumpVelocity += Physics.gravity.y * stats.gravityMultiplier * Time.fixedDeltaTime;
-            }
-
-            rb.velocity = new Vector3(rb.velocity.x, _jumpVelocity, rb.velocity.z);
-        }
+        // public void HandleJump()
+        // {
+        //     if (!_jumpTimer.IsRunning && groundChecker.IsGrounded)
+        //     {
+        //         _jumpVelocity = ZeroF;
+        //         _jumpTimer.Stop();
+        //         return;
+        //     }
+        //
+        //     if (!_jumpTimer.IsRunning)
+        //     {
+        //         _jumpVelocity += Physics.gravity.y * stats.gravityMultiplier * Time.fixedDeltaTime;
+        //     }
+        //
+        //     rb.velocity = new Vector3(rb.velocity.x, _jumpVelocity, rb.velocity.z);
+        // }
 
         private void HandleTimers()
         {
