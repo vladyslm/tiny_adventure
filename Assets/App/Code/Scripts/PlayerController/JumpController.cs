@@ -21,18 +21,18 @@ namespace TinyAdventure
 
         public void HandleJump()
         {
-            switch (_player._jumpTimer.IsRunning)
+            switch (_player.TimerController.JumpTimer.IsRunning)
             {
-                case false when _player.groundChecker.IsGrounded:
+                case false when _player.GroundChecker.IsGrounded:
                     _jumpVelocity = ZeroF;
-                    _player._jumpTimer.Stop();
+                    _player.TimerController.JumpTimer.Stop();
                     return;
                 case false:
                     _jumpVelocity += Physics.gravity.y * _player.Stats.gravityMultiplier * Time.fixedDeltaTime;
                     break;
             }
 
-            _player.rb.velocity = new Vector3(_player.rb.velocity.x, _jumpVelocity, _player.rb.velocity.z);
+            _player.Rb.velocity = new Vector3(_player.Rb.velocity.x, _jumpVelocity, _player.Rb.velocity.z);
         }
 
         public void OnJumpTimerStart()

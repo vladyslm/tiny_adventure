@@ -253,6 +253,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8189980434977739222, guid: f30a55216c391c04d8f5ce1ac8362ff9,
         type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1328952328}
+    - targetCorrespondingSourceObject: {fileID: 8189980434977739222, guid: f30a55216c391c04d8f5ce1ac8362ff9,
+        type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1328952324}
     - targetCorrespondingSourceObject: {fileID: 8189980434977739222, guid: f30a55216c391c04d8f5ce1ac8362ff9,
         type: 3}
@@ -1374,12 +1378,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 649960ce4d646bc4187f8a6e7219cfe5, type: 2}
   rb: {fileID: 1328952323}
-  freeLookCamera: {fileID: 214536084}
   animator: {fileID: 1328952320}
   groundChecker: {fileID: 1328952324}
   stats: {fileID: 11400000, guid: 02b746bb2b881f14e96341e5f648d87d, type: 2}
-  _movement: {x: 0, y: 0, z: 0}
-  _mainCamera: {fileID: 0}
+  animations: {fileID: 11400000, guid: 997b0a5d516dde345bb31fe3ec9f25e7, type: 2}
 --- !u!95 &1328952320 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 9036980633323257398, guid: f30a55216c391c04d8f5ce1ac8362ff9,
@@ -1470,6 +1472,19 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 15976370}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1328952328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328952317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e21cc55969d048a38f5b604dbd84ed70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  freeLookCamera: {fileID: 214536084}
 --- !u!1 &1365681150
 GameObject:
   m_ObjectHideFlags: 3

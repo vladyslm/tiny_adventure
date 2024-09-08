@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TinyAdventure
 {
-    [CreateAssetMenu(menuName = "TinyAdventure/ControllerStats")]
+    [CreateAssetMenu(menuName = "TinyAdventure/Data/ControllerStats")]
     public class ControllerStats : ScriptableObject
     {
         [Header("Movement")] public float moveSpeed = 6f;

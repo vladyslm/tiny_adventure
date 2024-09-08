@@ -17,14 +17,8 @@ namespace TinyAdventure
         }
 
 
-        private PlayerController _playerController;
-
-        // private float _moveSpeed = 300;
-        // private float _rotationSpeed = 15;
-        // private float _smoothTime;
-
-        // Internal
-        // private float _currentSpeed;
+        private readonly PlayerController _playerController;
+        
         private float _velocity;
 
         private const float ZeroF = 0f;
@@ -32,8 +26,8 @@ namespace TinyAdventure
 
         public void HandleMovement()
         {
-            var adjustedDirection = Quaternion.AngleAxis(_playerController._mainCamera.eulerAngles.y, Vector3.up) *
-                                    _playerController._movement;
+            var adjustedDirection = Quaternion.AngleAxis(_playerController.MainCameraTransform.eulerAngles.y, Vector3.up) *
+                                    _playerController.Movement;
             if (adjustedDirection.magnitude > ZeroF)
             {
                 HandleRotation(adjustedDirection);
@@ -45,7 +39,7 @@ namespace TinyAdventure
             {
                 SmoothSpeed(ZeroF);
 
-                _playerController.rb.velocity = new Vector3(ZeroF, _playerController.rb.velocity.y, ZeroF);
+                _playerController.Rb.velocity = new Vector3(ZeroF, _playerController.Rb.velocity.y, ZeroF);
             }
         }
 
@@ -60,7 +54,7 @@ namespace TinyAdventure
         private void HandleHorizontalVelocity(Vector3 adjustedDirection)
         {
             var velocity = adjustedDirection * (_playerController.Stats.moveSpeed * Time.fixedDeltaTime);
-            _playerController.rb.velocity = new Vector3(velocity.x, _playerController.rb.velocity.y, velocity.z);
+            _playerController.Rb.velocity = new Vector3(velocity.x, _playerController.Rb.velocity.y, velocity.z);
         }
 
         private void SmoothSpeed(float value)
