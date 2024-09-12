@@ -12,4 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8571dc58df87b5d469ae5522c6ea35ab, type: 3}
   m_Name: Animations
   m_EditorClassIdentifier: 
-  locomotionHash: -2089788878
+  attack1Length: 0.26
+  fastAttackLength: 0.26
+  stabbingAttackLength: 0.5
+  spinAttackLength: 0.5

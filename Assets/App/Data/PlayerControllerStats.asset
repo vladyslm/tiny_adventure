@@ -15,9 +15,9 @@ MonoBehaviour:
   moveSpeed: 300
   rotationSpeed: 15
   smoothTime: 0.2
-  jumpForce: 15
+  jumpForce: 10
   jumpMaxHeight: 2
-  jumpDuration: 0.5
+  jumpDuration: 0.2
   jumpCoolDown: 0
   gravityMultiplier: 3
   dashForce: 2
