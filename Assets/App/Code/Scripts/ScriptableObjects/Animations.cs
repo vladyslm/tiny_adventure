@@ -9,6 +9,7 @@ namespace TinyAdventure
     {
         // Animations
         private const string LocomotionAnimation = "Locomotion";
+        private const string RunAnimation = "Run";
         private const string JumpAnimation = "Jump";
         private const string DashAnimation = "Dash";
         private const string AttackAnimation = "Attack";
@@ -19,6 +20,7 @@ namespace TinyAdventure
 
         // Hashes
         public readonly int LocomotionHash = Animator.StringToHash(LocomotionAnimation);
+        public readonly int RunHash = Animator.StringToHash(RunAnimation);
         public readonly int JumpHash = Animator.StringToHash(JumpAnimation);
         public readonly int DashHash = Animator.StringToHash(DashAnimation);
         public readonly int AttackHash = Animator.StringToHash(AttackAnimation);

@@ -11,7 +11,7 @@ namespace TinyAdventure
         public override void OnEnter()
         {
             Debug.Log("Run State.OnEnter");
-            Animator.CrossFade(Player.Animations.LocomotionHash, 0);
+            Animator.Play(Player.Animations.RunHash);
         }
 
         public override void FixedUpdate()
