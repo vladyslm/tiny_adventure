@@ -9,6 +9,8 @@ namespace TinyAdventure
         private StateNode _current;
         private Dictionary<Type, StateNode> _nodes = new();
         private HashSet<ITransition> _anyTransitions = new();
+        
+        public IState CurrentState => _current.State;
 
         public void Update()
         {

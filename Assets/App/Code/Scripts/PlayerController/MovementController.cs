@@ -6,7 +6,7 @@ namespace TinyAdventure
 {
     public interface IMovementController
     {
-        void HandleMovement();
+        void HandleMovement(float speed);
     }
 
     public class MovementController : IMovementController
@@ -24,14 +24,14 @@ namespace TinyAdventure
         private const float ZeroF = 0f;
 
 
-        public void HandleMovement()
+        public void HandleMovement(float speed)
         {
             var adjustedDirection = Quaternion.AngleAxis(_playerController.MainCameraTransform.eulerAngles.y, Vector3.up) *
                                     _playerController.Movement;
             if (adjustedDirection.magnitude > ZeroF)
             {
                 HandleRotation(adjustedDirection);
-                HandleHorizontalVelocity(adjustedDirection);
+                HandleHorizontalVelocity(adjustedDirection, speed);
 
                 SmoothSpeed(adjustedDirection.magnitude);
             }
@@ -51,9 +51,10 @@ namespace TinyAdventure
                     _playerController.Stats.rotationSpeed * Time.deltaTime);
         }
 
-        private void HandleHorizontalVelocity(Vector3 adjustedDirection)
+        private void HandleHorizontalVelocity(Vector3 adjustedDirection, float speed)
         {
-            var velocity = adjustedDirection * (_playerController.Stats.moveSpeed * Time.fixedDeltaTime);
+            // var velocity = adjustedDirection * (_playerController.Stats.moveSpeed * Time.fixedDeltaTime);
+            var velocity = adjustedDirection * (speed * Time.fixedDeltaTime);
             _playerController.Rb.velocity = new Vector3(velocity.x, _playerController.Rb.velocity.y, velocity.z);
         }
 

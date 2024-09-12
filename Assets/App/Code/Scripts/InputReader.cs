@@ -16,7 +16,8 @@ namespace TinyAdventure
         public event UnityAction Attack = delegate { };
         public event UnityAction<bool> Jump = delegate { };
         
-        public event UnityAction<bool> Dash = delegate { }; 
+        public event UnityAction<bool> Dash = delegate { };
+        public event UnityAction<InputAction.CallbackContext> Run = delegate { }; 
 
         private PlayerInputAction _inputAction;
 
@@ -74,15 +75,16 @@ namespace TinyAdventure
 
         public void OnDash(InputAction.CallbackContext context)
         {
-            switch (context.phase)
-            {
-                case InputActionPhase.Started:
-                    Dash.Invoke(true);
-                    break;
-                case InputActionPhase.Canceled:
-                    Dash.Invoke(false);
-                    break;
-            }
+            Run.Invoke(context);
+            // switch (context.phase)
+            // {
+            //     case InputActionPhase.Started:
+            //         Dash.Invoke(true);
+            //         break;
+            //     // case InputActionPhase.Canceled:
+                //     Dash.Invoke(false);
+                //     break;
+            // }
         }
     }
 }

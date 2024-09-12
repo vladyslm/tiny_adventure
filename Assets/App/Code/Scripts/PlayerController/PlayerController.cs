@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 namespace TinyAdventure
 {
@@ -21,12 +23,20 @@ namespace TinyAdventure
         [SerializeField] private Animations animations;
 
         // Getters
+        public StateMachine StateMachine => _stateMachine;
         public Rigidbody Rb => rb;
         public Vector3 Movement => _movement;
         public GroundChecker GroundChecker => groundChecker;
         public ControllerStats Stats => stats;
         public Animations Animations => animations;
         public Transform MainCameraTransform => _mainCamera;
+        public bool IsRunnint => _isRunning;
+
+        public bool IsAttackChained
+        {
+            get => _isAttackChained;
+            set => _isAttackChained = value;
+        }
 
 
         // Controllers
@@ -50,7 +60,11 @@ namespace TinyAdventure
         // private float _dashVelocity = 1f;
 
 
+        private float _lastTimeRunButtonPressed;
         private bool _isOnRunWasSent;
+        private bool _isRunning = false;
+        // private float _attackStreak;
+        private bool _isAttackChained; 
 
         public float CurrentSpeed
         {
@@ -78,14 +92,16 @@ namespace TinyAdventure
         {
             input.Attack += OnAttack;
             input.Jump += OnJump;
-            input.Dash += OnDash;
+            // input.Dash += OnDash;
+            input.Run += OnRun;
         }
 
         private void OnDisable()
         {
             input.Attack -= OnAttack;
             input.Jump -= OnJump;
-            input.Dash -= OnDash;
+            // input.Dash -= OnDash;
+            input.Run -= OnRun;
         }
 
         private void Start()
@@ -128,12 +144,19 @@ namespace TinyAdventure
             var attackState = new AttackState(this, animator);
             var jumpState = new JumpState(this, animator);
             var dashState = new DashState(this, animator);
+            var runState = new RunState(this, animator);
 
 
             // Define Transitions
             At(locomotionState, jumpState, new FuncPredicate(() => TimerController.JumpTimer.IsRunning));
             At(locomotionState, dashState, new FuncPredicate(() => TimerController.DashTimer.IsRunning));
-
+            At(locomotionState, runState, new FuncPredicate((() => _isRunning)));
+            At(dashState, runState, new FuncPredicate(() => _isRunning && !TimerController.DashTimer.IsRunning));
+            
+            // At(attackState, runState, new FuncPredicate((() => _isRunning && !TimerController.AttackTimer.IsRunning)));
+            At(attackState, jumpState, new FuncPredicate(() => TimerController.JumpTimer.IsRunning && !TimerController.AttackTimer.IsRunning && GroundChecker.IsGrounded));
+            At(attackState, runState,  new FuncPredicate(() => !TimerController.AttackTimer.IsRunning && GroundChecker.IsGrounded && _isRunning));
+            
             Any(attackState,
                 new FuncPredicate(() => TimerController.AttackTimer.IsRunning && groundChecker.IsGrounded));
 
@@ -141,7 +164,8 @@ namespace TinyAdventure
                 new FuncPredicate(() =>
                     groundChecker.IsGrounded && !TimerController.JumpTimer.IsRunning &&
                     !TimerController.DashTimer.IsRunning &&
-                    !TimerController.AttackTimer.IsRunning));
+                    !TimerController.AttackTimer.IsRunning
+                    && !_isRunning));
 
             _stateMachine.SetState(locomotionState);
         }
@@ -152,11 +176,12 @@ namespace TinyAdventure
             TimerController.JumpTimer.OnTimerStop += () => TimerController.JumpCooldownTimer.Start();
 
             // TimerController.DashTimer.OnTimerStart += () => _dashVelocity = stats.dashForce;
-            // TimerController.DashTimer.OnTimerStop += () =>
-            // {
-            //     _dashVelocity = 1f;
-            //     TimerController.DashCooldownTimer.Start();
-            // };
+            TimerController.DashTimer.OnTimerStop += () =>
+            {
+                // _dashVelocity = 1f;
+                TimerController.DashCooldownTimer.Start();
+                // _isRunning = true;
+            };
 
             // Attack timers
             TimerController.AttackTimer.OnTimerStop += () => { TimerController.AttackCooldownTimer.Start(); };
@@ -182,24 +207,65 @@ namespace TinyAdventure
         // Events
         private void OnAttack()
         {
-            if (!TimerController.AttackTimer.IsRunning && !TimerController.AttackCooldownTimer.IsRunning)
+            // if (!TimerController.AttackTimer.IsRunning && !TimerController.AttackCooldownTimer.IsRunning)
+            if (!TimerController.AttackTimer.IsRunning)
                 TimerController.AttackTimer.Start();
+            else
+            {
+                _isAttackChained = true;
+            }
         }
 
-        private void OnDash(bool performed)
+        public void OnRun(InputAction.CallbackContext context)
         {
-            if (performed && !TimerController.DashCooldownTimer.IsRunning && groundChecker.IsGrounded)
+            switch (context.phase)
             {
-                TimerController.DashTimer.Start();
+                case InputActionPhase.Started:
+                    var currentTime = Time.time;
+
+                    if (currentTime - _lastTimeRunButtonPressed > 0.5f)
+                    {
+                       _lastTimeRunButtonPressed = Time.time; 
+                       break;
+                    }
+                        
+                    if (currentTime - _lastTimeRunButtonPressed < 0.5f)
+                    {
+                        Debug.Log("Double Press");
+                        _isRunning = false;
+                        TimerController.DashTimer.Start();
+                    }
+                    break;
+                case InputActionPhase.Performed:
+                    Debug.Log("Performed");
+                    _isRunning = true;
+                    break;
+                case InputActionPhase.Canceled:
+                    _isRunning = false;
+                    break;
+                    
             }
-            else if (!performed && TimerController.DashTimer.IsRunning)
-            {
-                TimerController.DashTimer.Stop();
-            }
+            // StartCoroutine(CheckForDoublePress());
         }
+
+        // private void OnDash(bool performed)
+        // {
+        //     Debug.Log($"Dash: {performed}");
+        //     // TimerController.DashTimer.Start();
+        //     
+        //     // if (performed && !TimerController.DashCooldownTimer.IsRunning && groundChecker.IsGrounded)
+        //     // {
+        //     //     TimerController.DashTimer.Start();
+        //     // }
+        //     // else if (!performed && TimerController.DashTimer.IsRunning)
+        //     // {
+        //     //     TimerController.DashTimer.Stop();
+        //     // }
+        // }
 
         private void OnJump(bool performed)
         {
+            TimerController.AttackTimer.Stop();
             if (performed && !TimerController.JumpTimer.IsRunning && !TimerController.JumpCooldownTimer.IsRunning &&
                 groundChecker.IsGrounded)
             {
@@ -214,7 +280,8 @@ namespace TinyAdventure
 
         private void HandleRunAction()
         {
-            if (_currentSpeed > 0 && groundChecker.IsGrounded)
+            // if (_currentSpeed > 0 && groundChecker.IsGrounded)
+            if ((_stateMachine.CurrentState is RunState) && groundChecker.IsGrounded)
             {
                 if (_isOnRunWasSent) return;
                 OnPlayerRun?.Invoke(true);
@@ -226,6 +293,11 @@ namespace TinyAdventure
                 OnPlayerRun?.Invoke(false);
                 _isOnRunWasSent = false;
             }
+        }
+
+        public void TestCoroutine(IEnumerator routine)
+        {
+            StartCoroutine(routine);
         }
     }
 }
