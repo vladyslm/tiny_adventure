@@ -9,24 +9,38 @@ namespace TinyAdventure
     {
         [SerializeField] private Transform attackPivot;
         [SerializeField] private float radius = 0.5f;
+        [SerializeField] private int maxColliderHits = 5;
+
+        private Collider[] _hitColliders;
+
+        private void Awake()
+        {
+            _hitColliders = new Collider[maxColliderHits];
+        }
 
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
-            // Gizmos.DrawSphere(attackPivot.position, radius);
             Gizmos.DrawWireSphere(attackPivot.position, radius);
         }
 
         public void DetectFastAttackHit()
         {
-            var hitColliders = Physics.OverlapSphere(attackPivot.position, radius);
-            foreach (var hitCollider in hitColliders)
-            {
-                var target = hitCollider.GetComponent<IDamageable>();
-                if (target == null) return;
+            var numColliders = Physics.OverlapSphereNonAlloc(attackPivot.position, radius, _hitColliders);
+            if (numColliders == 0) return;
 
-                target.TakeDamage(10);
+            for (int i = 0; i < numColliders; i++)
+            {
+                var target = _hitColliders[i].GetComponent<IDamageable>();
+                target?.TakeDamage(10);
             }
+
+            ClearHitCollidersArray();
+        }
+
+        private void ClearHitCollidersArray()
+        {
+            Array.Clear(_hitColliders, 0, _hitColliders.Length);
         }
     }
 }
