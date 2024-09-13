@@ -295,7 +295,7 @@ namespace TinyAdventure
             }
         }
 
-        public void TestCoroutine(IEnumerator routine)
+        public void StartAttackCoroutine(IEnumerator routine)
         {
             StartCoroutine(routine);
         }

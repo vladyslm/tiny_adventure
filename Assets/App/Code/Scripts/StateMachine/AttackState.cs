@@ -10,10 +10,13 @@ namespace TinyAdventure
         {
         }
 
+        private float _attackMovementSpeed = DefaultAttackMovementSpeed;
         private int _streak;
         private bool _isFirstAttack;
 
         private const int MaxStreak = 5;
+        private const float DefaultAttackMovementSpeed = 50f;
+        private const float SpinningAttackMovementSpeed = 500f;
 
         public override void OnEnter()
         {
@@ -25,14 +28,35 @@ namespace TinyAdventure
         public override void FixedUpdate()
         {
             Player.TimerController.AttackTimer.Reset();
-            // Player.TestCoroutine(Test());
-            Player.MovementController.HandleMovement(50);
+            Player.MovementController.HandleMovement(_attackMovementSpeed);
         }
-        
+
+        public override void OnExit()
+        {
+            base.OnExit();
+            _attackMovementSpeed = DefaultAttackMovementSpeed;
+        }
+
 
         private void PlayAttackAnimation()
         {
-            Player.TestCoroutine(Attack());
+            if (Player.IsRunnint)
+            {
+                Player.StartCoroutine(MovingAttack());
+                return;
+            }
+            
+            Player.StartAttackCoroutine(Attack());
+        }
+
+        private IEnumerator MovingAttack()
+        {
+            _attackMovementSpeed = SpinningAttackMovementSpeed;
+            Animator.Play(Player.Animations.MovingAttackHash);
+            yield return new WaitForSeconds(1f);
+            
+            Player.TimerController.AttackTimer.Stop();
+            yield return null;
         }
 
         private IEnumerator Attack()
@@ -83,6 +107,12 @@ namespace TinyAdventure
             Animator.Play(Player.Animations.SpinningAttackHash);
             yield return new WaitForSeconds(Player.Animations.spinAttackLength);
             HandleStreak();
+        }
+
+        private IEnumerator MovingSpinAttack()
+        {
+            Animator.Play(Player.Animations.MovingAttackHash);
+            yield return new WaitForSeconds(1f);
         }
 
         private IEnumerator StabbingAttack()
