@@ -12,6 +12,8 @@ namespace TinyAdventure
     {
         // Actions
         public event UnityAction<bool> OnPlayerRun = delegate { };
+        public event UnityAction OnSpinAttackStart = delegate { };
+        public event UnityAction OnSpinAttackEnd = delegate { };
 
         [Header("References")] [SerializeField]
         private InputReader input;
@@ -298,6 +300,16 @@ namespace TinyAdventure
         public void StartAttackCoroutine(IEnumerator routine)
         {
             StartCoroutine(routine);
+        }
+
+        public void OnSpinAttackStartEvent()
+        {
+            OnSpinAttackStart?.Invoke();
+        }
+
+        public void OnSpinAttackEndEvent()
+        {
+            OnSpinAttackEnd?.Invoke();
         }
     }
 }

@@ -53,7 +53,11 @@ namespace TinyAdventure
         {
             _attackMovementSpeed = SpinningAttackMovementSpeed;
             Animator.Play(Player.Animations.MovingAttackHash);
+            
+            Player.OnSpinAttackStartEvent();
+            
             yield return new WaitForSeconds(1f);
+            Player.OnSpinAttackEndEvent();
             
             Player.TimerController.AttackTimer.Stop();
             yield return null;
@@ -105,15 +109,17 @@ namespace TinyAdventure
         private IEnumerator SpinAttack()
         {
             Animator.Play(Player.Animations.SpinningAttackHash);
+            Player.OnSpinAttackStartEvent();
             yield return new WaitForSeconds(Player.Animations.spinAttackLength);
+            Player.OnSpinAttackEndEvent();
             HandleStreak();
         }
 
-        private IEnumerator MovingSpinAttack()
-        {
-            Animator.Play(Player.Animations.MovingAttackHash);
-            yield return new WaitForSeconds(1f);
-        }
+        // private IEnumerator MovingSpinAttack()
+        // {
+        //     Animator.Play(Player.Animations.MovingAttackHash);
+        //     yield return new WaitForSeconds(1f);
+        // }
 
         private IEnumerator StabbingAttack()
         {

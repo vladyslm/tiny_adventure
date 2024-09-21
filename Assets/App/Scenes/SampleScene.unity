@@ -1605,6 +1605,9 @@ MonoBehaviour:
   maxColliderHits: 5
   fastAttackDamage: 10
   stabAttackDamage: 15
+  aoeAttackPivot: {fileID: 103119678}
+  spinningAttack: 7
+  spinningAttackRadius: 1.7
 --- !u!1 &1365681150
 GameObject:
   m_ObjectHideFlags: 3
@@ -2829,7 +2832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7600c789164ac784d9cafc5544a7df0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startHealth: 100
+  startHealth: 60
   animator: {fileID: 9102273497277181310}
   popup: {fileID: 6820072813647649411, guid: f6ed0d0b8874ecf44aafb60c32b34ccc, type: 3}
   popupPivot: {fileID: 1974931222}
