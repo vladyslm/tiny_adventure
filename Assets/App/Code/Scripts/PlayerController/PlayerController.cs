@@ -155,6 +155,8 @@ namespace TinyAdventure
             At(locomotionState, runState, new FuncPredicate((() => _isRunning)));
             At(dashState, runState, new FuncPredicate(() => _isRunning && !TimerController.DashTimer.IsRunning));
             
+            At(jumpState, runState, new FuncPredicate(() => _isRunning && !TimerController.JumpTimer.IsRunning && GroundChecker.IsGrounded));
+            
             // At(attackState, runState, new FuncPredicate((() => _isRunning && !TimerController.AttackTimer.IsRunning)));
             At(attackState, jumpState, new FuncPredicate(() => TimerController.JumpTimer.IsRunning && !TimerController.AttackTimer.IsRunning && GroundChecker.IsGrounded));
             At(attackState, runState,  new FuncPredicate(() => !TimerController.AttackTimer.IsRunning && GroundChecker.IsGrounded && _isRunning));
