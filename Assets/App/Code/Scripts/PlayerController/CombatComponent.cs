@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace TinyAdventure
 {
@@ -20,6 +21,9 @@ namespace TinyAdventure
 
         [SerializeField] private float spinningAttack = 7f;
         [SerializeField] private float spinningAttackRadius = 1.7f;
+
+        [Header("Events")] [SerializeField] private UnityEvent onAttackHit;
+        // [SerializeField] private UnityEvent onSpinningAttackHit;
 
         private PlayerController _player;
         private Collider[] _hitColliders;
@@ -67,7 +71,9 @@ namespace TinyAdventure
             for (int i = 0; i < numColliders; i++)
             {
                 var target = _hitColliders[i].GetComponent<IDamageable>();
-                target?.TakeDamage(damage);
+                if (target == null) continue;
+                onAttackHit?.Invoke();
+                target.TakeDamage(damage);
             }
 
             ClearHitCollidersArray();
@@ -99,7 +105,9 @@ namespace TinyAdventure
             for (int i = 0; i < numColliders; i++)
             {
                 var target = _hitColliders[i].GetComponent<IDamageable>();
-                target?.TakeDamage(damage);
+                if (target == null) continue;
+                onAttackHit?.Invoke();
+                target.TakeDamage(damage);
             }
 
             ClearHitCollidersArray();

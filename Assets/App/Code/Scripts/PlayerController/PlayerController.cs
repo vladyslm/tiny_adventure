@@ -225,6 +225,7 @@ namespace TinyAdventure
             switch (context.phase)
             {
                 case InputActionPhase.Started:
+                    // TODO: implement double press by using a countdown timer?
                     var currentTime = Time.time;
 
                     if (currentTime - _lastTimeRunButtonPressed > 0.5f)

@@ -20,7 +20,7 @@ MonoBehaviour:
   jumpDuration: 0.2
   jumpCoolDown: 0
   gravityMultiplier: 3
-  dashForce: 2
+  dashForce: 2000
   dashDuration: 0.2
   dashCoolDown: 0
   attackDuration: 0.25
