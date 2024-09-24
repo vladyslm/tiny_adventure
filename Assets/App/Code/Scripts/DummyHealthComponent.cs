@@ -14,12 +14,14 @@ namespace TinyAdventure
 
         private float _health;
         private bool _isDown;
+        private Collider _collider;
 
         private readonly int _pushAnimationHash = Animator.StringToHash("pushed");
         private readonly int _diedAnimationHash = Animator.StringToHash("died");
 
         private void Awake()
         {
+            _collider = GetComponent<Collider>();
             _health = startHealth;
         }
 
@@ -46,6 +48,7 @@ namespace TinyAdventure
         private void Die()
         {
             _isDown = true;
+            HandleCollider(!_isDown);
             animator.Play(_diedAnimationHash);
             StartCoroutine(Reborn());
         }
@@ -61,7 +64,13 @@ namespace TinyAdventure
             yield return new WaitForSeconds(2f);
             _health = startHealth;
             _isDown = false;
+            HandleCollider(!_isDown);
             animator.Play(_pushAnimationHash);
+        }
+
+        private void HandleCollider(bool value)
+        {
+            _collider.enabled = value;
         }
     }
 }
