@@ -1,13 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
 
 namespace TinyAdventure
 {
     public class PlatformCollisionHandler : MonoBehaviour
     {
+        private PlayerController _player;
         private Transform _platform;
+
+        private void Awake()
+        {
+            _player = GetComponent<PlayerController>();
+        }
 
         private void OnCollisionEnter(Collision other)
         {
@@ -17,6 +24,7 @@ namespace TinyAdventure
                 
             _platform = other.transform;
             transform.SetParent(_platform);
+            SetUpdateMethod(CinemachineBrain.UpdateMethod.LateUpdate);
         }
 
         private void OnCollisionExit(Collision other)
@@ -24,6 +32,12 @@ namespace TinyAdventure
             if (!other.transform.CompareTag("MovingPlatform")) return;
             transform.SetParent(null);
             _platform = null;
+            SetUpdateMethod(CinemachineBrain.UpdateMethod.FixedUpdate);
+        }
+
+        private void SetUpdateMethod(CinemachineBrain.UpdateMethod updateMethod)
+        {
+            _player.CinemachineBrain.m_UpdateMethod = updateMethod;
         }
     }
 }

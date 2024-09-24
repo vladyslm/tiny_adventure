@@ -26,6 +26,7 @@ namespace TinyAdventure
 
         // Getters
         public StateMachine StateMachine => _stateMachine;
+        public CinemachineBrain CinemachineBrain => _cinemachineBrain;
         public Rigidbody Rb => rb;
         public Vector3 Movement => _movement;
         public GroundChecker GroundChecker => groundChecker;
@@ -51,6 +52,7 @@ namespace TinyAdventure
         private StateMachine _stateMachine;
 
         // Private Values
+        private CinemachineBrain _cinemachineBrain;
         private Vector3 _movement = Vector3.zero;
         private Transform _mainCamera;
         private float _currentSpeed;
@@ -200,6 +202,7 @@ namespace TinyAdventure
         private void SetupCamera()
         {
             if (Camera.main != null) _mainCamera = Camera.main.transform;
+            _cinemachineBrain = _mainCamera.GetComponent<CinemachineBrain>();
         }
 
         private void At(IState from, IState to, IPredicate condition) =>
