@@ -39,7 +39,8 @@ namespace TinyAdventure
             _timer += Time.deltaTime;
             if (_timer >= lifetime) Destroy(gameObject);
             
-            transform.LookAt(transform.position - _cameraTransform.position);
+            transform.LookAt(_cameraTransform.position - transform.up);
+            transform.forward *= -1;
             transform.position = Vector3.Lerp(_startPosition, _targetPosition, Mathf.Sin(_timer / lifetime));
         }
 
