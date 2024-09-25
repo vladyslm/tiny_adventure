@@ -2517,6 +2517,16 @@ PrefabInstance:
       propertyPath: m_Lens.FieldOfView
       value: 40
       objectReference: {fileID: 0}
+    - target: {fileID: 6708947144922976295, guid: 9656b3369017a8541a9cda7258e72134,
+        type: 3}
+      propertyPath: m_XAxis.m_MaxSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6708947144922976295, guid: 9656b3369017a8541a9cda7258e72134,
+        type: 3}
+      propertyPath: m_XAxis.m_SpeedMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6709442577449487735, guid: 9656b3369017a8541a9cda7258e72134,
         type: 3}
       propertyPath: m_SoftShadowQuality
